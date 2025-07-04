@@ -26,6 +26,18 @@ pub fn get_ipaddr() -> String {
     ipaddr
 }
 
+#[cfg(target_os = "macos")]
+pub fn get_ipaddr() -> String {
+    use std::net::UdpSocket;
+    UdpSocket::bind("0.0.0.0:0")
+        .and_then(|s| {
+            s.connect("8.8.8.8:80")?;
+            s.local_addr()
+        })
+        .map(|addr| addr.ip().to_string())
+        .unwrap_or_else(|_| "unknown".into())
+}
+
 #[cfg(target_os = "linux")]
 pub fn get_ipaddr() -> String {
     let final_str: Mutex<String> = Mutex::new(String::new());
