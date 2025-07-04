@@ -7,6 +7,22 @@ use {
     std::rc::Rc,
 };
 
+#[cfg(target_os = "macos")]
+pub fn get_cpu() -> String {
+    use std::process::Command;
+
+    let output = Command::new("sysctl")
+        .arg("-n")
+        .arg("machdep.cpu.brand_string")
+        .output();
+
+    if let Ok(output) = output {
+        String::from_utf8_lossy(&output.stdout).trim().to_string()
+    } else {
+        "Unknown CPU".to_string()
+    }
+}
+
 #[cfg(target_os = "windows")]
 pub fn get_cpu() -> String {
     use std::process::Command;
@@ -58,6 +74,50 @@ pub fn get_ram_used() -> String {
         ram_total.parse::<u64>().unwrap() / 1024
     )
 }
+
+#[cfg(target_os = "macos")]
+pub fn get_ram_used() -> String {
+    use std::process::Command;
+
+    // Get total memory
+    let total_output = Command::new("sysctl")
+        .arg("-n")
+        .arg("hw.memsize")
+        .output();
+
+    // Get vm_stat output for active memory
+    let vm_output = Command::new("vm_stat")
+        .output();
+
+    if let (Ok(total), Ok(vm)) = (total_output, vm_output) {
+        let total_mem_bytes: f64 = String::from_utf8_lossy(&total.stdout)
+            .trim()
+            .parse::<f64>()
+            .unwrap_or(0.0);
+
+        let vm_output_str = String::from_utf8_lossy(&vm.stdout);
+        let mut used_pages = 0.0;
+        for line in vm_output_str.lines() {
+            if line.contains("Pages active") || line.contains("Pages wired down") {
+                if let Some(num) = line.split(':').nth(1) {
+                    used_pages += num.trim().replace(".", "").parse::<f64>().unwrap_or(0.0);
+                }
+            }
+        }
+
+        let page_size = 4096.0; // default macOS page size
+        let used_mem = used_pages * page_size;
+
+        format!(
+            "{:.1} GiB / {:.1} GiB",
+            used_mem / (1024.0 * 1024.0 * 1024.0),
+            total_mem_bytes / (1024.0 * 1024.0 * 1024.0)
+        )
+    } else {
+        "Unknown RAM usage".to_string()
+    }
+}
+
 
 #[cfg(target_os = "windows")]
 pub fn get_kernel() -> String {
@@ -131,6 +191,11 @@ pub fn get_arch() -> String {
         .map(|&c| c as char)
         .collect::<String>()
         .trim().to_string()
+}
+
+#[cfg(target_os = "macos")]
+pub fn get_arch() -> String {
+    std::env::consts::ARCH.to_string()
 }
 
 #[cfg(target_os = "windows")]
