@@ -20,7 +20,7 @@ pub struct Action<'a> {
     func: Option<fn() -> String>,
 }
 
-const ACTIONS: [Action; 13] = [
+const ACTIONS: [Action; 10] = [
     Action {
         action_type: ActionType::HostInfo,
         name: None,
