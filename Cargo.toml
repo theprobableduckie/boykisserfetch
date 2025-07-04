@@ -13,3 +13,4 @@ include = [
 
 [dependencies]
 kernel32-sys = "0.2.2"
+hostname = "0.3"
