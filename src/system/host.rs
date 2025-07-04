@@ -26,6 +26,21 @@ pub fn get_hostname() -> String {
     hostname
 }
 
+#[cfg(target_os = "macos")]
+pub fn get_hostname() -> String {
+    // macOS-compatible implementation
+    use std::process::Command;
+
+    let output = Command::new("scutil")
+        .arg("--get")
+        .arg("ComputerName")
+        .output()
+        .ok()
+        .and_then(|o| String::from_utf8(o.stdout).ok());
+
+    output.unwrap_or_else(|| "unknown-macos".to_string()).trim().to_string()
+}
+
 #[cfg(target_os = "windows")]
 pub fn get_user() -> String {
     let mut user = String::new();
@@ -118,6 +133,31 @@ pub fn get_resolution() -> String {
     ).to_string()
 }
 
+#[cfg(target_os = "macos")]
+pub fn get_resolution() -> String {
+    use std::process::Command;
+    let output = Command::new("osascript")
+        .arg("-e")
+        .arg("tell application \"Finder\" to get bounds of window of desktop")
+        .output();
+
+    match output {
+        Ok(o) => {
+            let out = String::from_utf8_lossy(&o.stdout);
+            // Output is: 0, 0, width, height
+            let parts: Vec<&str> = out.trim().split(',').collect();
+            if parts.len() == 4 {
+                let w = parts[2].trim();
+                let h = parts[3].trim();
+                format!("{}x{}", w, h)
+            } else {
+                "unknown".to_string()
+            }
+        }
+        Err(_) => "unknown".to_string(),
+    }
+}
+
 #[cfg(target_os = "linux")]
 pub fn get_hostname() -> String {
     Command::new("hostname")
@@ -160,6 +200,11 @@ pub fn get_user() -> String {
         .collect::<String>()
         .trim()
         .to_string()
+}
+
+#[cfg(target_os = "macos")]
+pub fn get_user() -> String {
+    std::env::var("USER").unwrap_or_else(|_| "unknown-user".into())
 }
 
 #[cfg(target_os = "linux")] 
@@ -213,6 +258,11 @@ pub fn get_shell() -> String {
     });
 
     final_str
+}
+
+#[cfg(target_os = "macos")]
+pub fn get_shell() -> String {
+    std::env::var("SHELL").unwrap_or_else(|_| "unknown".into())
 }
 
 #[cfg(target_os = "linux")]
