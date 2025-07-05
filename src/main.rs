@@ -20,7 +20,7 @@ pub struct Action<'a> {
     func: Option<fn() -> String>,
 }
 
-const ACTIONS: [Action; 10] = [
+const ACTIONS: [Action; 11] = [
     Action {
         action_type: ActionType::HostInfo,
         name: None,
@@ -92,6 +92,18 @@ const ACTIONS: [Action; 10] = [
         func: Some(system::host::get_init_system),
     },
     #[cfg(target_os = "windows")]
+    Action {
+        action_type: ActionType::Details,
+        name: Some("GPU"),
+        func: Some(system::specs::get_gpu),
+    },
+    #[cfg(target_os = "linux")]
+    Action {
+        action_type: ActionType::Details,
+        name: Some("GPU"),
+        func: Some(system::specs::get_gpu),
+    },
+    #[cfg(target_os = "macos")]
     Action {
         action_type: ActionType::Details,
         name: Some("GPU"),

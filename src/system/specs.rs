@@ -302,3 +302,53 @@ pub fn get_gpu() -> String {
 
     gpu
 }
+
+#[cfg(target_os = "linux")]
+pub fn get_gpu() -> String {
+    use std::process::Command;
+
+    let mut gpu = String::new();
+
+    let output = Command::new("lspci")
+        .arg("-v")
+        .output()
+        .expect("Failed to execute lspci command");
+
+    let output = String::from_utf8_lossy(&output.stdout);
+
+    for line in output.lines() {
+        if line.contains("VGA") || line.contains("3D") {
+            if let Some(pos) = line.find(": ") {
+                gpu = line[pos + 2..].trim().to_string();
+                break;
+            }
+        }
+    }
+
+    gpu
+}
+
+#[cfg(target_os = "macos")]
+pub fn get_gpu() -> String {
+    use std::process::Command;
+
+    let mut gpu = String::new();
+
+    let output = Command::new("system_profiler")
+        .args(&["SPDisplaysDataType"])
+        .output()
+        .expect("Failed to execute system_profiler command");
+
+    let output = String::from_utf8_lossy(&output.stdout);
+
+    for line in output.lines() {
+        if line.contains("Chipset Model:") {
+            if let Some(pos) = line.find(": ") {
+                gpu = line[pos + 2..].trim().to_string();
+                break;
+            }
+        }
+    }
+
+    gpu
+}
