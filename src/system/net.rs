@@ -1,4 +1,4 @@
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 use {
     crate::helpers::file::file_open,
     std::sync::Mutex,
@@ -38,7 +38,7 @@ pub fn get_ipaddr() -> String {
         .unwrap_or_else(|_| "unknown".into())
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn get_ipaddr() -> String {
     let final_str: Mutex<String> = Mutex::new(String::new());
     let intr = file_open("/proc/net/route");

@@ -180,7 +180,7 @@ pub fn get_disk_usage() -> String {
     disk
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn get_arch() -> String {
     Command::new("uname")
         .arg("-m")
@@ -220,7 +220,7 @@ pub fn get_arch() -> String {
     uptime
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn get_cpu() -> String {
     let mut cpu: Rc<String> = Rc::new(String::new());
     let mut temp_buf: String = String::new();
@@ -244,7 +244,7 @@ pub fn get_cpu() -> String {
     cpu.to_string()
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn get_ram_used() -> String {
     let temp_buf: String = file_open("/proc/meminfo");
 
@@ -268,7 +268,7 @@ pub fn get_ram_used() -> String {
     )
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 fn eval_ram(line: String) -> u128 {
     let kbs: u128 = line.split(":")
         .collect::<Vec<&str>>()[1].to_string()
@@ -303,7 +303,7 @@ pub fn get_gpu() -> String {
     gpu
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn get_gpu() -> String {
     use std::process::Command;
 

@@ -1,6 +1,6 @@
 #[cfg(any(target_os = "windows", target_os = "linux"))]
 use std::process::Command;
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 use {
     crate::helpers::file::file_open,
     std::{fs::File, io::Read},
@@ -158,7 +158,7 @@ pub fn get_resolution() -> String {
     }
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn get_hostname() -> String {
     Command::new("hostname")
         .output()
@@ -171,7 +171,7 @@ pub fn get_hostname() -> String {
         .to_string()
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn get_kernel() -> String {
     let mut kernel = String::new();
 
@@ -189,7 +189,7 @@ pub fn get_kernel() -> String {
     kernel
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn get_user() -> String {
     Command::new("whoami")
         .output()
@@ -207,7 +207,7 @@ pub fn get_user() -> String {
     std::env::var("USER").unwrap_or_else(|_| "unknown-user".into())
 }
 
-#[cfg(target_os = "linux")] 
+#[cfg(any(target_os = "linux", target_os = "android"))] 
 pub fn get_distro() -> String {
     use std::rc::Rc;
 
@@ -242,7 +242,7 @@ pub fn get_distro() -> String {
     distro.to_string()
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn get_shell() -> String {
     let temp_buf: String = file_open("/etc/passwd");
     let mut final_str = String::new();
@@ -265,7 +265,7 @@ pub fn get_shell() -> String {
     std::env::var("SHELL").unwrap_or_else(|_| "unknown".into())
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn get_resolution() -> String {
     let mut final_str = String::new();
 
@@ -288,7 +288,7 @@ pub fn get_resolution() -> String {
     final_str
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "android"))]
 pub fn get_init_system() -> String {
     Command::new("ps")
         .args(&["-p", "1", "-o", "comm="])
