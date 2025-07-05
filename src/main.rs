@@ -80,17 +80,7 @@ const ACTIONS: [Action; 11] = [
         name: Some("Disk usage"),
         func: Some(system::specs::get_disk_usage),
     },
-    Action {
-        action_type: ActionType::Details,
-        name: Some("RAM"),
-        func: Some(system::specs::get_ram_used),
-    },
-    #[cfg(target_os = "linux")]
-    Action {
-        action_type: ActionType::Details,
-        name: Some("Init System"),
-        func: Some(system::host::get_init_system),
-    },
+
     #[cfg(target_os = "windows")]
     Action {
         action_type: ActionType::Details,
@@ -108,6 +98,17 @@ const ACTIONS: [Action; 11] = [
         action_type: ActionType::Details,
         name: Some("GPU"),
         func: Some(system::specs::get_gpu),
+    },
+    Action {
+        action_type: ActionType::Details,
+        name: Some("RAM"),
+        func: Some(system::specs::get_ram_used),
+    },
+    #[cfg(target_os = "linux")]
+    Action {
+        action_type: ActionType::Details,
+        name: Some("Init System"),
+        func: Some(system::host::get_init_system),
     },
     Action {
         action_type: ActionType::Delimiter,
