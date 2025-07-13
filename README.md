@@ -20,7 +20,7 @@
 - [⚡ Installing](#-installing)
   - [📦 Manually](#-manually)
 - [📚 Contributing](#-contributing)
-    - [🐎 Adding new ponies](#-adding-new-ponies)
+    - [:3 Adding new boykissers](#-adding-new-ponies)
     - [🖥️ Modifying \& Adding code](#️-modifying--adding-code)
 - [⛓️ Sources](#️-sources)
 
@@ -68,7 +68,7 @@ To install the latest version of boykisserFetch, first visit the available relea
 If you wish to add new boykissers to the project, you are completly free to do so :3. after adding a new boykisser, please ensure to credit the author in the "Sources" section of the README.
 
 #### 🖥️ Modifying & Adding code
-boykisserfetch is(probably) still under development, so it is likely that there are bugs present. If you encounter one, please open an issue and discuss it with us. Once the discussion is completed, submit a pull request with the proposed changes.
+boykisserfetch is (probably) still under development, so it is likely that there are bugs present. If you encounter one, please open an issue and discuss it with us. Once the discussion is completed, submit a pull request with the proposed changes.
 
 ## ⛓️ Sources
 1. boykisser ASCII art by hiperdex, under MIT licence. https://github.com/hiperdex/boykisser
