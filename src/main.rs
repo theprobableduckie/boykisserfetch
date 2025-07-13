@@ -19,8 +19,118 @@ pub struct Action<'a> {
     name: Option<&'a str>,
     func: Option<fn() -> String>,
 }
+fn get_uptime() -> String {
+    #[cfg(target_os = "linux")]
+    {
+        let uptime = std::fs::read_to_string("/proc/uptime")
+            .unwrap_or_else(|_| "0.0".to_string());
+        let uptime_seconds: f64 = uptime.split_whitespace().next().unwrap_or("0").parse().unwrap();
+        let hours = (uptime_seconds / 3600.0).floor();
+        let minutes = ((uptime_seconds % 3600.0) / 60.0).floor();
+        format!("{} hours, {} minutes", hours, minutes)
+    }
 
-const ACTIONS: [Action; 11] = [
+    #[cfg(target_os = "windows")]
+    {
+        use std::process::Command;
+        let output = Command::new("wmic")
+            .arg("os")
+            .arg("get")
+            .arg("LastBootUpTime")
+            .output()
+            .expect("Failed to execute command");
+        
+        let boot_time_str = String::from_utf8_lossy(&output.stdout);
+        let boot_time = boot_time_str.lines().nth(1).unwrap_or("0").trim();
+        
+        // Parse the boot time and calculate uptime
+        let boot_time = chrono::DateTime::parse_from_str(boot_time, "%Y%m%d%H%M%S.%f%z").unwrap();
+        let uptime = chrono::Utc::now().signed_duration_since(boot_time);
+        format!("{} hours, {} minutes", uptime.num_hours(), uptime.num_minutes() % 60)
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        let output = Command::new("sysctl")
+            .arg("kern.boottime")
+            .output()
+            .expect("Failed to execute command");
+        
+        let boot_time_str = String::from_utf8_lossy(&output.stdout);
+        let boot_time = boot_time_str.split_whitespace().nth(3).unwrap_or("0").trim_matches(',');
+        
+        // Parse the boot time and calculate uptime
+        let boot_time = chrono::DateTime::from_utc(
+            chrono::NaiveDateTime::from_timestamp(boot_time.parse::<i64>().unwrap(), 0),
+            chrono::Utc,
+        );
+        let uptime = chrono::Utc::now().signed_duration_since(boot_time);
+        format!("{} hours, {} minutes", uptime.num_hours(), uptime.num_minutes() % 60)
+    }
+}
+
+fn get_gpus() -> String {
+    let mut gpus = Vec::new();
+
+    #[cfg(target_os = "linux")]
+    {
+        // Use lspci to list all GPUs
+        let output = std::process::Command::new("lspci")
+            .arg("-nn")
+            .output()
+            .expect("Failed to execute command");
+        
+        let output_str = String::from_utf8_lossy(&output.stdout);
+        for line in output_str.lines() {
+            if line.contains("VGA compatible controller") || line.contains("3D controller") {
+                gpus.push(format!("GPU          : {}", line.trim()));
+            }
+        }
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        // Use wmic to list all GPUs
+        let output = std::process::Command::new("wmic")
+            .arg("path")
+            .arg("win32_VideoController")
+            .arg("get")
+            .arg("name")
+            .output()
+            .expect("Failed to execute command");
+        
+        let output_str = String::from_utf8_lossy(&output.stdout);
+        for line in output_str.lines().skip(1) { // Skip the header
+            let gpu = line.trim();
+            if !gpu.is_empty() {
+                gpus.push(format!("GPU          : GPU: {}", gpu));
+            }
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        // Use system_profiler to list all GPUs
+        let output = std::process::Command::new("system_profiler")
+            .arg("SPDisplaysDataType")
+            .output()
+            .expect("Failed to execute command");
+        
+        let output_str = String::from_utf8_lossy(&output.stdout);
+        for line in output_str.lines() {
+            if line.contains("Chipset Model:") {
+                let gpu = line.replace("Chipset Model:", "").trim();
+                gpus.push(format!("GPU          : GPU: {}", gpu));
+            }
+        }
+    }
+
+    // Join all GPU names with a newline character
+    gpus.join("\n")
+}
+
+
+const ACTIONS: [Action; 14] = [
     Action {
         action_type: ActionType::HostInfo,
         name: None,
@@ -87,28 +197,21 @@ const ACTIONS: [Action; 11] = [
         name: Some("GPU"),
         func: Some(system::specs::get_gpu),
     },
-    #[cfg(target_os = "linux")]
     Action {
         action_type: ActionType::Details,
         name: Some("GPU"),
-        func: Some(system::specs::get_gpu),
-    },
-    #[cfg(target_os = "macos")]
-    Action {
-        action_type: ActionType::Details,
-        name: Some("GPU"),
-        func: Some(system::specs::get_gpu),
-    },
-    Action {
-        action_type: ActionType::Details,
-        name: Some("RAM"),
-        func: Some(system::specs::get_ram_used),
+        func: Some(get_gpus), // Use the updated function defined above
     },
     #[cfg(target_os = "linux")]
     Action {
         action_type: ActionType::Details,
         name: Some("Init System"),
         func: Some(system::host::get_init_system),
+    },
+    Action {
+    action_type: ActionType::Details,
+    name: Some("Uptime"),
+    func: Some(get_uptime),
     },
     Action {
         action_type: ActionType::Delimiter,
